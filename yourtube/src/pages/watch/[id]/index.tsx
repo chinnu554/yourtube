@@ -5,24 +5,30 @@ import Videopplayer from "@/components/Videopplayer";
 import axiosInstance from "@/lib/axiosinstance";
 import { notFound } from "next/navigation";
 import { useRouter } from "next/router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const index = () => {
   const router = useRouter();
   const { id } = router.query;
   const [videos, setvideo] = useState<any>(null);
-  const [video, setvide] = useState<any>(null);
+  const [video, setvide] = useState<any[]>([]);
   const [loading, setloading] = useState(true);
   useEffect(() => {
     const fetchvideo = async () => {
       if (!id || typeof id !== "string") return;
       try {
         const res = await axiosInstance.get("/video/getall");
-        const video = res.data?.filter((vid: any) => vid._id === id);
-        setvideo(video[0]);
-        setvide(res.data);
+        const matchedVideo = res.data?.find((vid: any) => vid._id === id) || null;
+        const relatedVideos = Array.isArray(res.data)
+          ? res.data.filter((vid: any) => vid._id !== id)
+          : [];
+
+        setvideo(matchedVideo);
+        setvide(relatedVideos);
       } catch (error) {
         console.log(error);
+        setvideo(null);
+        setvide([]);
       } finally {
         setloading(false);
       }

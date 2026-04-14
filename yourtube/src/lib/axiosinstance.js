@@ -1,6 +1,8 @@
 import axios from "axios";
+import { getBackendUrl } from "./media";
+
 const axiosInstance = axios.create({
-  baseURL: process.env.BACKEND_URL,
- 
+  baseURL: getBackendUrl(),
 });
+
 export default axiosInstance;

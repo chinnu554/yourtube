@@ -3,7 +3,7 @@ import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 
 interface RelatedVideosProps {
-  videos: Array<{
+  videos?: Array<{
     _id: string;
     videotitle: string;
     videochanel: string;
@@ -12,19 +12,22 @@ interface RelatedVideosProps {
   }>;
 }
 const vid = "/video/vdo.mp4";
-export default function RelatedVideos({ videos }: RelatedVideosProps) {
+export default function RelatedVideos({ videos = [] }: RelatedVideosProps) {
   return (
     <div className="space-y-2">
+      {videos.length === 0 && (
+        <p className="text-sm text-gray-500">No related videos available.</p>
+      )}
       {videos.map((video) => (
         <Link
           key={video._id}
           href={`/watch/${video._id}`}
-          className="flex gap-2 group"
+          className="group flex gap-3 rounded-lg p-1 transition-colors hover:bg-gray-50"
         >
-          <div className="relative w-40 aspect-video bg-gray-100 rounded overflow-hidden flex-shrink-0">
+          <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded bg-gray-100 sm:w-40">
             <video
               src={vid}
-              className="object-cover group-hover:scale-105 transition-transform duration-200"
+              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
             />
           </div>
           <div className="flex-1 min-w-0">
