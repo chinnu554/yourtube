@@ -1,12 +1,15 @@
 import comment from "../Modals/comment.js";
 import mongoose from "mongoose";
 
-const COMMENT_REGEX = /^[\p{L}\p{N}\p{M}\s.,!?'"-]+$/u;
+const COMMENT_REGEX = /^[\p{L}\p{N}\p{M}\s]+$/u;
+
+const sanitizeCommentBody = (value = "") =>
+  typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
 
 const isValidCommentBody = (value = "") =>
   typeof value === "string" &&
-  value.trim().length > 0 &&
-  COMMENT_REGEX.test(value.trim());
+  sanitizeCommentBody(value).length > 0 &&
+  COMMENT_REGEX.test(sanitizeCommentBody(value));
 
 const normalizeLangCode = (value = "") => {
   if (typeof value !== "string") return "en";
@@ -35,15 +38,16 @@ const translateText = async (text, targetLanguage) => {
 };
 
 export const postcomment = async (req, res) => {
+  const sanitizedComment = sanitizeCommentBody(req.body?.commentbody);
   const commentdata = {
     ...req.body,
-    commentbody: req.body?.commentbody?.trim(),
+    commentbody: sanitizedComment,
     city: req.body?.city?.trim() || "Unknown city",
   };
   if (!isValidCommentBody(commentdata?.commentbody)) {
     return res.status(400).json({
       message:
-        "Comments can only include letters, numbers, spaces, and basic punctuation.",
+        "Comments can only include letters, numbers, and spaces.",
     });
   }
 
@@ -84,21 +88,21 @@ export const deletecomment = async (req, res) => {
 
 export const editcomment = async (req, res) => {
   const { id: _id } = req.params;
-  const { commentbody } = req.body;
+  const commentbody = sanitizeCommentBody(req.body?.commentbody);
   if (!mongoose.Types.ObjectId.isValid(_id)) {
     return res.status(404).send("comment unavailable");
   }
   if (!isValidCommentBody(commentbody)) {
     return res.status(400).json({
       message:
-        "Comments can only include letters, numbers, spaces, and basic punctuation.",
+        "Comments can only include letters, numbers, and spaces.",
     });
   }
   try {
     const updatecomment = await comment.findByIdAndUpdate(
       _id,
       {
-        $set: { commentbody: commentbody.trim() },
+        $set: { commentbody },
       },
       { new: true }
     );

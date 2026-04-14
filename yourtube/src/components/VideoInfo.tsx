@@ -12,6 +12,9 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { useUser } from "@/lib/AuthContext";
 import axiosInstance from "@/lib/axiosinstance";
+import { toast } from "sonner";
+import { useRouter } from "next/router";
+import { getBackendUrl } from "@/lib/media";
 
 const VideoInfo = ({ video }: any) => {
   const [likes, setlikes] = useState(video.Like || 0);
@@ -21,6 +24,8 @@ const VideoInfo = ({ video }: any) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const { user } = useUser();
   const [isWatchLater, setIsWatchLater] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const router = useRouter();
 
   // const user: any = {
   //   id: "1",
@@ -111,6 +116,59 @@ const VideoInfo = ({ video }: any) => {
       console.log(error);
     }
   };
+
+  const handleDownload = async () => {
+    if (!user?._id) {
+      toast.error("Sign in to download videos.");
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      const response = await fetch(`${getBackendUrl()}/download/${video._id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: user._id }),
+      });
+
+      if (!response.ok) {
+        let parsedError: any = null;
+
+        try {
+          parsedError = await response.json();
+        } catch {
+          parsedError = null;
+        }
+
+        if (response.status === 403 && parsedError?.premiumRequired) {
+          toast.error(parsedError.message);
+          router.push("/premium");
+          return;
+        }
+
+        toast.error(parsedError?.message || "Unable to download video.");
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = video.filename || `${video.videotitle}.mp4`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Download started.");
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Unable to download video.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">{video.videotitle}</h1>
@@ -179,9 +237,11 @@ const VideoInfo = ({ video }: any) => {
             variant="ghost"
             size="sm"
             className="bg-gray-100 rounded-full"
+            onClick={handleDownload}
+            disabled={isDownloading}
           >
             <Download className="w-5 h-5 mr-2" />
-            Download
+            {isDownloading ? "Downloading..." : "Download"}
           </Button>
           <Button
             variant="ghost"

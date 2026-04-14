@@ -8,10 +8,37 @@ export const login = async (req, res) => {
     const existingUser = await users.findOne({ email });
 
     if (!existingUser) {
-      const newUser = await users.create({ email, name, image });
+      const newUser = await users.create({
+        email,
+        name,
+        image,
+        currentPlan: "free",
+        premiumPlan: "free",
+        watchLimitMinutes: 5,
+        isPremium: false,
+      });
       return res.status(201).json({ result: newUser });
     } else {
-      return res.status(200).json({ result: existingUser });
+      const updatedUser =
+        existingUser.currentPlan && existingUser.watchLimitMinutes !== undefined
+          ? existingUser
+          : await users.findByIdAndUpdate(
+              existingUser._id,
+              {
+                $set: {
+                  currentPlan: existingUser.currentPlan || "free",
+                  premiumPlan: existingUser.premiumPlan || "free",
+                  watchLimitMinutes:
+                    existingUser.watchLimitMinutes !== undefined
+                      ? existingUser.watchLimitMinutes
+                      : 5,
+                  isPremium: existingUser.isPremium || false,
+                },
+              },
+              { new: true }
+            );
+
+      return res.status(200).json({ result: updatedUser });
     }
   } catch (error) {
     console.error("Login error:", error);

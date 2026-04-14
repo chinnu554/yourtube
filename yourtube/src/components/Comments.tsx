@@ -27,7 +27,7 @@ interface TranslatedCommentState {
   text: string;
 }
 
-const COMMENT_REGEX = /^[\p{L}\p{N}\p{M}\s.,!?'"-]+$/u;
+const COMMENT_REGEX = /^[\p{L}\p{N}\p{M}\s]+$/u;
 const LANGUAGE_OPTIONS = [
   { value: "en", label: "English" },
   { value: "hi", label: "Hindi" },
@@ -40,6 +40,8 @@ const LANGUAGE_OPTIONS = [
 
 const isAllowedComment = (value: string) =>
   COMMENT_REGEX.test(value.trim()) && value.trim().length > 0;
+
+const sanitizeComment = (value: string) => value.trim().replace(/\s+/g, " ");
 
 const resolveCityFromCoordinates = async (
   latitude: number,
@@ -109,10 +111,12 @@ const Comments = ({
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [loading, setLoading] = useState(true);
-  const [targetLanguage, setTargetLanguage] = useState("en");
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [translatedComments, setTranslatedComments] = useState<
     Record<string, TranslatedCommentState>
+  >({});
+  const [commentLanguages, setCommentLanguages] = useState<
+    Record<string, string>
   >({});
   const [reactingId, setReactingId] = useState<string | null>(null);
   const { user } = useUser();
@@ -145,9 +149,11 @@ const Comments = ({
   const handleSubmitComment = async () => {
     if (!user || !newComment.trim() || typeof videoId !== "string") return;
 
-    if (!isAllowedComment(newComment)) {
+    const sanitizedComment = sanitizeComment(newComment);
+
+    if (!isAllowedComment(sanitizedComment)) {
       toast.error(
-        "Special characters are blocked. Use letters, numbers, spaces, and basic punctuation only."
+        "Special characters are blocked. Use letters, numbers, and spaces only."
       );
       return;
     }
@@ -158,7 +164,7 @@ const Comments = ({
       const res = await axiosInstance.post("/comment/postcomment", {
         videoid: videoId,
         userid: user._id,
-        commentbody: newComment.trim(),
+        commentbody: sanitizedComment,
         usercommented: user.name,
         city,
       });
@@ -185,9 +191,11 @@ const Comments = ({
   const handleUpdateComment = async () => {
     if (!editText.trim() || !editingCommentId) return;
 
-    if (!isAllowedComment(editText)) {
+    const sanitizedComment = sanitizeComment(editText);
+
+    if (!isAllowedComment(sanitizedComment)) {
       toast.error(
-        "Special characters are blocked. Use letters, numbers, spaces, and basic punctuation only."
+        "Special characters are blocked. Use letters, numbers, and spaces only."
       );
       return;
     }
@@ -195,7 +203,7 @@ const Comments = ({
     try {
       const res = await axiosInstance.post(
         `/comment/editcomment/${editingCommentId}`,
-        { commentbody: editText.trim() }
+        { commentbody: sanitizedComment }
       );
       if (res.data) {
         setComments((prev) =>
@@ -268,6 +276,7 @@ const Comments = ({
   };
 
   const handleTranslate = async (commentId: string) => {
+    const targetLanguage = commentLanguages[commentId] || "en";
     setTranslatingId(commentId);
     try {
       const res = await axiosInstance.post(`/comment/translate/${commentId}`, {
@@ -321,8 +330,8 @@ const Comments = ({
               className="min-h-[80px] resize-none border-0 border-b-2 rounded-none focus-visible:ring-0"
             />
             <p className="text-xs text-gray-500">
-              Special characters are blocked automatically. Letters from any
-              language, numbers, spaces, and basic punctuation are allowed.
+              Special characters are blocked automatically. Only letters,
+              numbers, and spaces are allowed.
             </p>
             <div className="flex gap-2 justify-end">
               <Button
@@ -436,8 +445,13 @@ const Comments = ({
                           {comment.dislikes || 0}
                         </Button>
                         <select
-                          value={targetLanguage}
-                          onChange={(e) => setTargetLanguage(e.target.value)}
+                          value={commentLanguages[comment._id] || "en"}
+                          onChange={(e) =>
+                            setCommentLanguages((prev) => ({
+                              ...prev,
+                              [comment._id]: e.target.value,
+                            }))
+                          }
                           className="h-8 rounded-md border border-gray-200 px-2 text-sm"
                         >
                           {LANGUAGE_OPTIONS.map((language) => (
