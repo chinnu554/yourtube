@@ -1,4 +1,4 @@
-const DEFAULT_BACKEND_URL = "http://localhost:5000";
+const DEFAULT_BACKEND_URL = "https://yourtube-backend-wnxy.onrender.com";
 
 export const getBackendUrl = () =>
   process.env.NEXT_PUBLIC_BACKEND_URL ||

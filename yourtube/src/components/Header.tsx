@@ -1,4 +1,4 @@
-import { Bell, Crown, Download, Menu, Mic, Search, User, VideoIcon } from "lucide-react";
+import { Bell, Crown, Download, Menu, Mic, Search, User, Users, VideoIcon } from "lucide-react";
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -14,29 +14,27 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import Channeldialogue from "./channeldialogue";
 import { useRouter } from "next/router";
 import { useUser } from "@/lib/AuthContext";
+import RegionalLoginHandler from "./RegionalLoginHandler";
 
 const Header = () => {
-  const { user, logout, handlegooglesignin } = useUser();
-  // const user: any = {
-  //   id: "1",
-  //   name: "John Doe",
-  //   email: "john@example.com",
-  //   image: "https://github.com/shadcn.png?height=32&width=32",
-  // };
+  const { user, logout } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
   const [isdialogeopen, setisdialogeopen] = useState(false);
   const router = useRouter();
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
+
   const handleKeypress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleSearch(e as any);
     }
   };
+
   return (
     <header className="sticky top-0 z-40 border-b bg-white/95 px-3 py-2 backdrop-blur sm:px-4">
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -145,6 +143,14 @@ const Header = () => {
                     </span>
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/watch-together">
+                    <span className="inline-flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Watch Together
+                    </span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>Sign out</DropdownMenuItem>
               </DropdownMenuContent>
@@ -152,13 +158,7 @@ const Header = () => {
           </>
         ) : (
           <>
-            <Button
-              className="flex items-center gap-2 px-3 sm:px-4"
-              onClick={handlegooglesignin}
-            >
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign in</span>
-            </Button>
+            <RegionalLoginHandler />
           </>
         )}
       </div>

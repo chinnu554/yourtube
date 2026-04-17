@@ -5,11 +5,8 @@ import users from "../Modals/Auth.js";
 import { getPlanConfig } from "../config/plans.js";
 import { sendPlanInvoiceEmail } from "../services/invoiceEmail.js";
 
-const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
-const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
-
 const ensureRazorpayConfig = () => {
-  if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     throw new Error("Razorpay keys are not configured.");
   }
 };
@@ -43,7 +40,7 @@ export const createpremiumorder = async (req, res) => {
     }
 
     const authHeader = Buffer.from(
-      `${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`
+      `${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`
     ).toString("base64");
 
     const response = await fetch("https://api.razorpay.com/v1/orders", {
@@ -78,7 +75,7 @@ export const createpremiumorder = async (req, res) => {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      keyId: RAZORPAY_KEY_ID,
+      keyId: process.env.RAZORPAY_KEY_ID,
       plan: selectedPlan,
       planName: planConfig.name,
       watchLimitMinutes: planConfig.watchLimitMinutes,
@@ -119,7 +116,7 @@ export const verifypremiumpayment = async (req, res) => {
     const planConfig = getPlanConfig(existingPayment.plan);
 
     const generatedSignature = crypto
-      .createHmac("sha256", RAZORPAY_KEY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 

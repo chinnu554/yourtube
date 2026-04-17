@@ -170,86 +170,99 @@ const VideoInfo = ({ video }: any) => {
     }
   };
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-x-hidden">
       <h1 className="text-xl font-semibold">{video.videotitle}</h1>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar className="w-10 h-10">
-            <AvatarFallback>{video.videochanel[0]}</AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="font-medium">{video.videochanel}</h3>
-            <p className="text-sm text-gray-600">1.2M subscribers</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Channel Info Section */}
+        <div className="flex items-center justify-between gap-3 w-full md:w-auto">
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar className="h-10 w-10 shrink-0">
+              <AvatarFallback>{video.videochanel[0]}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <h3 className="truncate font-medium">{video.videochanel}</h3>
+              <p className="text-sm text-gray-600">1.2M subscribers</p>
+            </div>
           </div>
-          <Button className="ml-4">Subscribe</Button>
+          <Button className="shrink-0 px-4">Subscribe</Button>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center bg-gray-100 rounded-full">
+
+        {/* Action Buttons Section */}
+        <div className="w-full md:w-auto overflow-x-auto pb-1 [scrollbar-width:none] touch-pan-x overscroll-x-contain [&::-webkit-scrollbar]:hidden">
+          <div className="inline-flex items-center gap-2 pr-1">
+            <div className="flex items-center rounded-full bg-gray-100 shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-l-full px-3 sm:px-4"
+                onClick={handleLike}
+              >
+                <ThumbsUp
+                  className={`mr-2 h-5 w-5 ${
+                    isLiked ? "fill-black text-black" : ""
+                  }`}
+                />
+                <span className="whitespace-nowrap">{likes.toLocaleString()}</span>
+              </Button>
+              <div className="h-6 w-px bg-gray-300" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-r-full px-3 sm:px-4"
+                onClick={handleDislike}
+              >
+                <ThumbsDown
+                  className={`mr-2 h-5 w-5 ${
+                    isDisliked ? "fill-black text-black" : ""
+                  }`}
+                />
+                <span className="whitespace-nowrap">{dislikes.toLocaleString()}</span>
+              </Button>
+            </div>
+
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-l-full"
-              onClick={handleLike}
+              className={`rounded-full bg-gray-100 px-3 sm:px-4 shrink-0 ${
+                isWatchLater ? "text-primary" : ""
+              }`}
+              onClick={handleWatchLater}
             >
-              <ThumbsUp
-                className={`w-5 h-5 mr-2 ${
-                  isLiked ? "fill-black text-black" : ""
-                }`}
-              />
-              {likes.toLocaleString()}
+              <Clock className="mr-2 h-5 w-5 shrink-0" />
+              <span className="whitespace-nowrap">
+                {isWatchLater ? "Saved" : "Watch Later"}
+              </span>
             </Button>
-            <div className="w-px h-6 bg-gray-300" />
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-r-full"
-              onClick={handleDislike}
+              className="rounded-full bg-gray-100 px-3 sm:px-4 shrink-0"
             >
-              <ThumbsDown
-                className={`w-5 h-5 mr-2 ${
-                  isDisliked ? "fill-black text-black" : ""
-                }`}
-              />
-              {dislikes.toLocaleString()}
+              <Share className="mr-2 h-5 w-5 shrink-0" />
+              <span className="whitespace-nowrap">Share</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full bg-gray-100 px-3 sm:px-4 shrink-0"
+              onClick={handleDownload}
+              disabled={isDownloading}
+            >
+              <Download className="mr-2 h-5 w-5 shrink-0" />
+              <span className="whitespace-nowrap">
+                {isDownloading ? "Downloading..." : "Download"}
+              </span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="shrink-0 rounded-full bg-gray-100"
+            >
+              <MoreHorizontal className="h-5 w-5" />
             </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`bg-gray-100 rounded-full ${
-              isWatchLater ? "text-primary" : ""
-            }`}
-            onClick={handleWatchLater}
-          >
-            <Clock className="w-5 h-5 mr-2" />
-            {isWatchLater ? "Saved" : "Watch Later"}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="bg-gray-100 rounded-full"
-          >
-            <Share className="w-5 h-5 mr-2" />
-            Share
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="bg-gray-100 rounded-full"
-            onClick={handleDownload}
-            disabled={isDownloading}
-          >
-            <Download className="w-5 h-5 mr-2" />
-            {isDownloading ? "Downloading..." : "Download"}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="bg-gray-100 rounded-full"
-          >
-            <MoreHorizontal className="w-5 h-5" />
-          </Button>
         </div>
       </div>
       <div className="bg-gray-100 rounded-lg p-4">

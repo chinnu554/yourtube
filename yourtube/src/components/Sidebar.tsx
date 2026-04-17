@@ -8,6 +8,7 @@ import {
   History,
   User,
   Crown,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
@@ -73,6 +74,12 @@ const Sidebar = () => {
                 <Button variant="ghost" className="w-full justify-start">
                   <Crown className="w-5 h-5 mr-3" />
                   {user?.isPremium ? "Premium active" : "Premium"}
+                </Button>
+              </Link>
+              <Link href="/watch-together">
+                <Button variant="ghost" className="w-full justify-start">
+                  <Users className="w-5 h-5 mr-3" />
+                  Watch Together
                 </Button>
               </Link>
               {user?.channelname ? (
